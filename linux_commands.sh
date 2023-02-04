@@ -1,3 +1,4 @@
+# node
 su root
 adduser walt sudo
 sudo apt-get install curl
@@ -11,6 +12,8 @@ node --version
 npm --version
 npm init
 npm install --save express
+
+# docker
 sudo apt update
 sudo apt remove runc
 curl -fsSL https://get.docker.com | bash -s docker
@@ -18,3 +21,14 @@ curl -fsSL https://get.docker.com | bash -s docker
 docker run --rm -p 3000:3000 simple-node
 docker ps
 docker stop {CONTAINER_ID}
+docker tag kuard gcr.io/kuar-demo/kuard-amd64:blue
+docker push gcr.io/kuar-demo/kuard-amd64:blue
+
+#golang
+apt-cache policy golang
+sudo add-apt-repository ppa:longsleep/golang-backports
+sudo apt update
+sudo apt install golang-go
+go version
+chmod 777 kuard
+
