@@ -47,3 +47,21 @@ sudo apt install golang-go
 go version
 chmod 777 kuard
 
+#aws cli
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+which aws
+ls -l /usr/local/bin/aws
+
+#k8s on aws
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+sudo mv /tmp/eksctl /usr/local/bin
+eksctl version
+eksctl create cluster #只有在aws cloudshell上才可以,在本地会报Error: checking AWS STS access – cannot get role ARN for current session
+kubectl version --short
+kubectl get componentstatuses
+kubectl get nodes
+kubectl describe nodes ip-192-168-50-46.eu-west-1.compute.internal
+
