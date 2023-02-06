@@ -24,6 +24,7 @@ docker stop {CONTAINER_ID}
 
 # kuard
 git clone https://github.com/kubernetes-up-and-running/kuard
+git pull
 cd kuard
 docker build -t kuard .
 docker run --rm -p 8080:8080 kuard
@@ -106,7 +107,7 @@ kubectl help <command-name>
 kubectl run kuard --image=gcr.io/kuar-demo/kuard-amd64:blue
 kubectl get pods
 kubectl delete pods/kuard
-kubectl apply -f kuard-pod.yaml
+kubectl apply -f kuard-pod.yaml #必须先delete上一个才能重新启动
 kubectl get pods -o wide | -o json | -o yaml | --v=10
 kubectl describe pods kuard
 kubectl delete pods/kuard
