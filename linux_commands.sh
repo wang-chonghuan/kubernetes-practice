@@ -29,7 +29,7 @@ docker build -t kuard .
 docker run --rm -p 8080:8080 kuard
 docker tag kuard gcr.io/kuar-demo/kuard-amd64:blue
 docker push gcr.io/kuar-demo/kuard-amd64:blue #Unauthorized access.
-docker run -d --name kuard --publish 8080:8080 gcr.io/kuar-demo/kuard-amd64:blue
+docker run -d --name kuard --publish 8080:8080 gcr.io/kuar-demo/kuard-amd64:blue # deploy kuard using the following Docker command
 docker stop kuard
 docker rm kuard # 每次用完必须停止且删除,否则不能重新启动该名字的容器,只有守护进程启动的容器才可以如此操作,否则就是ctrl+c
 docker run -d --name kuard --publish 8080:8080 --memory 200m --memory-swap 1G --cpu-shares 1024 gcr.io/kuar-demo/kuard-amd64:blue
@@ -102,3 +102,7 @@ kubectl uncordon
 echo "source <(kubectl completion bash)" >> ${HOME}/.bashrc
 kubectl help <command-name>
 
+#pods
+kubectl run kuard --image=gcr.io/kuar-demo/kuard-amd64:blue
+kubectl get pods
+kubectl delete pods/kuard
