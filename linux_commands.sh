@@ -64,4 +64,41 @@ kubectl version --short
 kubectl get componentstatuses
 kubectl get nodes
 kubectl describe nodes ip-192-168-50-46.eu-west-1.compute.internal
+kubectl get daemonSets --namespace=kube-system kube-proxy #在每个node上部署一个kube-proxy容器的实例
+kubectl get deployments --namespace=kube-system coredns #用deployments运行一个coredns,也可以自动变为多个,replicas
+
+#kubectl
+cat $HOME/.kube/config | more
+kubectl config set-context my-context --namespace=mystuff #创建一个新context,默认用户空间名字不同
+kubectl config use-context my-context #使用新的上下文
+kubectl get pods
+kubectl get services
+kubectl get nodes
+kubectl get pods my-pod -o jsonpath --template={.status.podIP} #this command will extract and print the IP address of the specified Pod
+kubectl get pods,services
+kubectl describe <resource-name> <obj-name>
+kubectl explain pods
+kubectl apply -f obj.yaml --dry-run
+kubectl apply -f obj.yaml
+kubectl edit <resource-name> <obj-name>
+kubectl apply -f myobj.yaml view-last-applied #will show you the last state that was applied to the object
+kubectl delete -f obj.yaml
+kubectl delete <resource-name> <obj-name>
+kubectl label pods bar color=red #add the color=red label to a Pod named bar
+kubectl label pods bar color=red --overwrite
+kubectl label pods bar color-
+kubectl logs <pod-name> #see the logs for a running container
+kubectl logs <pod-name> #-c for choosing one container in this pod; -f without exiting
+kubectl exec -it <pod-name> -- bash # provide you with an interactive shell inside the running container
+kubectl attach -it <pod-name> #allow you to send input to the running process which is set up to read from standard input
+kubectl cp <pod-name>:</path/to/remote/file> </path/to/local/file> #copy files to and from a container
+kubectl port-forward <pod-name> 8080:80 # opens connection that forwards traffic from local on port 8080 to the container on port 80
+kubectl get events --watch #stream events, -A
+kubectl top nodes # cpu and memory
+kubectl top pods --all-namespaces
+kubectl cordon # for a node
+kubectl drain
+kubectl uncordon
+echo "source <(kubectl completion bash)" >> ${HOME}/.bashrc
+kubectl help <command-name>
 
