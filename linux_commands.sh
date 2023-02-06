@@ -106,3 +106,16 @@ kubectl help <command-name>
 kubectl run kuard --image=gcr.io/kuar-demo/kuard-amd64:blue
 kubectl get pods
 kubectl delete pods/kuard
+kubectl apply -f kuard-pod.yaml
+kubectl get pods -o wide | -o json | -o yaml | --v=10
+kubectl describe pods kuard
+kubectl delete pods/kuard
+kubectl delete -f kuard-pod.yaml
+kubectl logs kuard -f
+kubectl exec kuard -- date #execute commands in the context of the container
+kubectl exec -it kuard -- ash #an interactive session
+ 
+ 
+ 
+ 
+ 
