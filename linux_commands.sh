@@ -115,8 +115,13 @@ kubectl delete -f kuard-pod.yaml
 kubectl logs kuard -f
 kubectl exec kuard -- date #execute commands in the context of the container
 kubectl exec -it kuard -- ash #an interactive session
- 
- 
+
+#gcp
+curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-416.0.0-linux-arm.tar.gz
+tar -xf google-cloud-cli-416.0.0-linux-arm.tar.gz
+./google-cloud-sdk/install.sh
+./google-cloud-sdk/bin/gcloud init
+
  
  
  
