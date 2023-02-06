@@ -10,8 +10,8 @@ spec:
       name: kuard
       resources:
         requests:
-          cpu: "500m"
-          memory: "128Mi"
+          cpu: "500m" #millicores
+          memory: "128Mi" #1MiB == 1000KiB
         limits:
           cpu: "1000m"
           memory: "256Mi"
