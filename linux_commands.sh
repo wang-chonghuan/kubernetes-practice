@@ -122,6 +122,25 @@ tar -xf google-cloud-cli-416.0.0-linux-arm.tar.gz
 ./google-cloud-sdk/install.sh
 ./google-cloud-sdk/bin/gcloud init
 
- 
- 
- 
+#labels
+##create the alpaca-prod deployment and set the ver, app, and env labels
+##弃用了
+kubectl run alpaca-prod --image=gcr.io/kuar-demo/kuard-amd64:blue --replicas=2 --labels="ver=1,app=alpaca,env=prod"
+##用以下替代
+kubectl create deployment alpaca-prod --image gcr.io/kuar-demo/kuard-amd64:blue --replicas 2
+kubectl label deployment alpaca-prod ver=1 appname=alpaca env=prod
+kubectl create deployment alpaca-test --image gcr.io/kuar-demo/kuard-amd64:green --replicas 1
+kubectl label deployment alpaca-test ver=2 app=alpaca env=test
+
+kubectl get deployments --show-labels #列出所有deployments
+kubectl label deployment alpaca-test appname- #删除标签
+kubectl label --overwrite deployment alpaca-test app=alpaca #修改标签
+##再创建一组
+kubectl create deployment bandicoot-prod --image gcr.io/kuar-demo/kuard-amd64:green --replicas 2
+kubectl label deployment bandicoot-prod ver=2 app=bandicoot env=prod --overwrite
+kubectl create deployment bandicoot-staging --image gcr.io/kuar-demo/kuard-amd64:green --replicas 1
+kubectl label deployment bandicoot-staging ver=2 app=bandicoot env=staging --overwrite
+
+kubectl label deployments alpaca-test "canary=true"
+kubectl get deployments -L canary
+
