@@ -5,9 +5,20 @@ kind: Pod
 metadata:
   name: kuard
 spec:
+  volumns: #all volumns available in this pod
+    - name: "kuard-data"
+      hostPath:
+        path: "/var/lib/kuard"
+    - name: "kuard-data-nfs"
+      nfs:
+        server: my.nfs.server.local
+        path: "/exports"
   containers:
     - image: gcr.io/kuar-demo/kuard-amd64:blue
       name: kuard
+      volumeMounts: #volumns mounted in this container
+        - mountPath: "/data"
+        name: "kuard-data"
       resources:
         requests:
           cpu: "500m" #millicores
