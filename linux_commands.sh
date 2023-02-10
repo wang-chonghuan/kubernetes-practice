@@ -128,9 +128,9 @@ tar -xf google-cloud-cli-416.0.0-linux-arm.tar.gz
 kubectl run alpaca-prod --image=gcr.io/kuar-demo/kuard-amd64:blue --replicas=2 --labels="ver=1,app=alpaca,env=prod"
 ##用以下替代
 kubectl create deployment alpaca-prod --image gcr.io/kuar-demo/kuard-amd64:blue --replicas 2
-kubectl label deployment alpaca-prod ver=1 appname=alpaca env=prod
+kubectl label deployment alpaca-prod ver=1 appname=alpaca env=prod --overwrite
 kubectl create deployment alpaca-test --image gcr.io/kuar-demo/kuard-amd64:green --replicas 1
-kubectl label deployment alpaca-test ver=2 app=alpaca env=test
+kubectl label deployment alpaca-test ver=2 app=alpaca env=test --overwrite
 
 kubectl get deployments --show-labels #列出所有deployments
 kubectl label deployment alpaca-test appname- #删除标签
@@ -140,7 +140,24 @@ kubectl create deployment bandicoot-prod --image gcr.io/kuar-demo/kuard-amd64:gr
 kubectl label deployment bandicoot-prod ver=2 app=bandicoot env=prod --overwrite
 kubectl create deployment bandicoot-staging --image gcr.io/kuar-demo/kuard-amd64:green --replicas 1
 kubectl label deployment bandicoot-staging ver=2 app=bandicoot env=staging --overwrite
-
+#只显示符合某些条件的pods或deployments
 kubectl label deployments alpaca-test "canary=true"
 kubectl get deployments -L canary
+kubectl get pods --selector="ver=2"
+#and
+kubectl get deployments --selector="env=prod,ver=2"
+#删除所有部署
+kubectl delete deployments --all
 
+####service discovery
+#创建部署指定端口
+kubectl create deployment alpaca-prod --image gcr.io/kuar-demo/kuard-amd64:blue --port=8080
+#扩容
+kubectl scale deployment alpaca-prod --replicas 3
+#创建service object
+kubectl expose deployment alpaca-prod
+
+kubectl get services -o wide
+#port-forward
+ALPACA_POD=$(kubectl get pods -l app=alpaca-prod -o jsonpath='{.items[0].metadata.name}')
+kubectl port-forward $ALPACA_POD 48858:8080

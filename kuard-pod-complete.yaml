@@ -4,6 +4,8 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: kuard
+  annotations:
+    example.com/icon-url: "https://example.com/icon.png"
 spec:
   volumns: #all volumns available in this pod
     - name: "kuard-data"
