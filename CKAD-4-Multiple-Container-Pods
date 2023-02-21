@@ -1,0 +1,138 @@
+#创建初始化容器模式的Pod
+vim pod-initctn.yaml
+BOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: business-app
+spec:
+  initContainers:
+  - name: configurer
+    image: busybox:1.32.0
+    command: ['sh', '-c', 'echo Configuring application... && mkdir -p /usr/shared/app && echo -e "{\"dbConfig\": {\"host\":\"localhost\",\"port\":5432,\"dbName\":\"customers\"}}" > /usr/shared/app/config.json']
+    volumeMounts:
+    - name: configdir
+      mountPath: "/usr/shared/app"
+  containers:
+  - image: bmuschko/nodejs-read-config:1.0.0
+    name: web
+    ports:
+    - containerPort: 8080
+    volumeMounts:
+    - name: configdir
+      mountPath: "/usr/shared/app"
+  volumes:
+  - name: configdir
+    emptyDir: {}
+EOF
+#读取日志,command echo到stdout上的话都能读到
+kubectl logs business-app -c configurer
+
+#创建sidecar模式的pod
+vim pod-sidecar.yaml
+BOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webserver
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: logs-vol
+      mountPath: /var/log/nginx
+  - name: sidecar
+    image: busybox
+    command: [
+      "sh",
+      "-c",
+      "while true; do
+        if [ \"$(cat /var/log/nginx/error.log | grep 'error')\" != \"\" ]; then
+          echo 'Error discovered!';
+        fi;
+        sleep 10;
+      done"
+    ]
+    volumeMounts:
+    - name: logs-vol
+      mountPath: /var/log/nginx
+  volumes:
+  - name: logs-vol
+    emptyDir: {}
+EOF
+
+#检查某个容器的日志
+kubectl logs webserver -c sidecar
+#登入某个容器的shell
+kubectl exec webserver -it -c sidecar -- /bin/sh
+#制造一个HTTP错误
+wget -O- localhost?unknown
+#查看日志
+cat /var/log/nginx/error.log
+exit
+#在pod外部查看sidecar的输出
+kubectl logs webserver -c sidecar
+
+#适配器模式
+vim pod-adapter.yaml
+BOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: adapter
+spec:
+  containers:
+  - name: app
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - 'while true; do
+        echo "$(date) | $(du -sh ~)" >> /var/logs/diskspace.txt;
+        sleep 5;
+      done;'
+    volumeMounts:
+      - name: config-volume
+        mountPath: /var/logs
+  - name: transformer
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - 'sleep 20;
+      while true; do
+        while read LINE; do
+          echo "$LINE" | cut -f2 -d"|" >> $(date +%Y-%m-%d-%H-%M-%S)-transformed.txt;
+        done < /var/logs/diskspace.txt;
+        sleep 20;
+      done;'
+    volumeMounts:
+    - name: config-volume
+      mountPath: /var/logs
+  volumes:
+  - name: config-volume
+    emptyDir: {}
+EOF
+#查看pod中运行了哪些容器
+k describe pod adapter
+
+#Ambassador Pattern
+#business-app发出的请求,都要经过ambassador,后者对其做速率限制
+vim pod-ambassador.yaml
+BOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rate-limiter
+spec:
+  containers:
+  - name: business-app
+    image: bmuschko/nodejs-business-app:1.0.0
+    ports:
+    - containerPort: 8080
+  - name: ambassador
+    image: bmuschko/nodejs-ambassador:1.0.0
+    ports:
+    - containerPort: 8081
+EOF

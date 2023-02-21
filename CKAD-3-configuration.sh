@@ -130,7 +130,7 @@ EOF
 #先创建命名空间
 kubectl create namespace team-awesome
 #显示当前命名空间
-k config view
+k config view | grep namespace
 #设置修改当前命名空间(也就是修改默认命名空间)
 kubectl config set-context --current --namespace=team-awesome
 

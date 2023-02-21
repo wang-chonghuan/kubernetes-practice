@@ -1,0 +1,85 @@
+k get all
+k get events
+k get logs -f
+k get logs -previous
+vim pod-distroless.yaml
+BOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: minimal-pod
+spec:
+  containers:
+  - image: k8s.gcr.io/pause:3.1
+  name: pause
+EOF
+#将运行图像业务箱的短暂容器添加到名为最小Pod的荚中，并为其打开交互式外壳
+kubectl debug -it minimal-pod --image=busybox
+ps -A
+#error: Metrics API not available
+minikube addons enable metrics-server
+kubectl top nodes
+kubectl top pod frontend
+
+#一次性容器
+w@kw-master:~/ckad/c5-observibility$ cat pod-shell.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: incorrect-cmd-pod
+spec:
+  containers:
+  - name: test-container
+    image: busybox
+    command: ["/bin/sh", "-c", "ls"]
+
+#readiness-probe
+w@kw-master:~/ckad/c5-observibility$ cat pod-readiness-probe.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: readiness-pod
+spec:
+  containers:
+  - image: bmuschko/nodejs-hello-world:1.0.0
+    name: hello-world
+    ports:
+    - name: nodejs-port
+      containerPort: 3000
+    readinessProbe:
+      httpGet:
+        path: /
+        port: nodejs-port
+      initialDelaySeconds: 2
+      periodSeconds: 8
+
+#pod-failing.yaml
+w@kw-master:~/ckad/c5-observibility$ cat pod-failing.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: failing-pod
+spec:
+  containers:
+  - args:
+    - /bin/sh
+    - -c
+    - while true; do echo $(date) >> ~/tmp/curr-date.txt; sleep 5; done;
+    image: busybox
+    name: failing-pod
+
+#distroless容器
+w@kw-master:~/ckad/c5-observibility$ cat pod-distroless.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: minimal-pod
+spec:
+  containers:
+  - image: k8s.gcr.io/pause:3.1
+    name: pause
+
+
+
+
+
