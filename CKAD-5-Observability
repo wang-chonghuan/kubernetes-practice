@@ -80,6 +80,21 @@ spec:
     name: pause
 
 
+#检测service的可访问性
+#首先获得它的集群IP和端口
+$ kubectl get services
+NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE
+myservice ClusterIP 10.99.155.165 <none> 80/TCP 15m
+#然后启动一个临时busybox容器用wget去访问这个端口
+$ kubectl run tmp --image=busybox -it --rm -- wget -O- 10.99.155.165:80
+
+#检查服务的目标端口和容器的暴露端口是否一致
+$ kubectl get service myapp -o yaml | grep targetPort
+targetPort: 80
+$ kubectl get pods myapp-68bf896d89-qfhlv -o yaml | grep containerPort
+- containerPort: 80
+
+
 
 
 

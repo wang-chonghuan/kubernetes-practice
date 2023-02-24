@@ -1,0 +1,180 @@
+#创建带有两个标签的容器
+kubectl run labeled-pod --image=nginx --restart=Never --labels=tier=backend,env=dev
+w@kw-master:~/ckad/c6-pod-design$ cat pod-labels.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: labeled-pod
+  labels:
+    env: dev
+    tier: backend
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+EOF
+#查看运行中的容器的标签,显示前后2行上下文
+kubectl describe pod labeled-pod | grep -C 2 Labels
+kubectl get pod labeled-pod -o yaml | grep -C 1 labels
+#带标签列出所有pod
+kubectl get pods --show-labels
+#label的增改删
+kubectl label pod labeled-pod region=eu
+kubectl label pod labeled-pod region=us --overwrite
+kubectl label pod labeled-pod region-
+#创建三个容器，包含不同的标签
+kubectl run frontend --image=nginx --restart=Never --labels=env=prod,team=shiny
+kubectl run backend --image=nginx --restart=Never --labels=env=prod,team=legacy,app=v1.2.4
+kubectl run database --image=nginx --restart=Never --labels=env=prod,team=storage
+#选择env等于prod的pods
+kubectl get pods -l env=prod --show-labels
+#选择team包含于shiny和legacy的pods
+kubectl get pods -l 'team in (shiny, legacy)' --show-labels
+#AND等于模式和in模式
+kubectl get pods -l 'team in (shiny, legacy)',app=v1.2.4 --show-labels
+#label selector in a manifest
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      tier: frontend
+EOF
+#定义了三个annotations的pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: annotated-pod
+  annotations:
+    commit: 866a8dc
+    author: 'Benjamin Muschko'
+    branch: 'bm/bugfix'
+  spec:
+    containers:
+    - image: nginx
+      name: nginx
+EOF
+#查看运行中容器的annotation
+kubectl describe pod annotated-pod | grep -C 2 Annotations
+kubectl get pod annotated-pod -o yaml | grep -C 3 annotations
+#annotation的增改删
+kubectl annotate pod annotated-pod oncall='800-555-1212'
+kubectl annotate pod annotated-pod oncall='800-555-2000' --overwrite
+kubectl annotate pod annotated-pod oncall-
+
+
+#创建一个deployment，根据一个image, 只有一个replica
+kubectl create deployment my-deploy --image=nginx:1.14.2
+w@kw-master:~/ckad/c6-pod-design$ cat deployment-single.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deploy
+  labels:
+    app: my-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-deploy
+  template:
+    metadata:
+      labels:
+        app: my-deploy
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+EOF
+#描述一个部署
+kubectl describe deployment.apps/my-deploy
+#描述一个其中的复制集
+kubectl describe replicaset.apps/my-deploy-8448c488b5
+#描述复制集中的pod
+kubectl describe pod/my-deploy-8448c488b5-mzx5g
+
+
+#查看revision的历史
+kubectl rollout history deployment my-deploy
+#更新depl的image
+kubectl set image deployment my-deploy nginx=nginx:1.19.2
+#查看部署的状态
+kubectl describe deployment my-deploy
+#查看rollout的状态
+kubectl rollout status deployment my-deploy
+#查看一个revision到底改了些什么
+kubectl rollout history deployments my-deploy --revision=2
+
+#回退到上一个版本
+kubectl rollout undo deployment my-deploy --to-revision=1
+
+
+#scale up
+kubectl scale deployment my-deploy --replicas=5
+
+#自动横向扩展，阈值是70%, 最少2个pod，最多8个pod
+kubectl autoscale deployment my-deploy --cpu-percent=70 --min=2 --max=8
+#列出所有的hpa
+kubectl get hpa
+#<unknown>
+kubectl describe hpa my-deploy
+
+#创建一个Job
+#一个名为 "counter" 的 Kubernetes Job，使用 "nginx" 镜像，并在容器中运行一个 shell 命令。该 shell 命令会输出数字 1-3，每个数字之间间隔 3 秒，然后 Job 将被终止。
+kubectl create job counter \
+  --image=nginx \
+  -- /bin/sh -c 'counter=0; \
+  while [ $counter -lt 3 ]; do \
+  counter=$((counter+1)); \
+  echo "$counter"; \
+  sleep 3; \
+  done;'
+
+#创建Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: counter
+spec:
+  template:
+    spec:
+      containers:
+      - name: counter
+        image: nginx
+        command:
+        - /bin/sh
+        - -c
+        - counter=0; while [ $counter -lt 3 ]; do counter=$((counter+1)); \
+          echo "$counter"; sleep 3; done;
+      restartPolicy: Never
+EOF
+
+kubectl get jobs counter -o yaml | grep -C 1 "completions"
+
+
+#创建cronjob
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: current-date
+spec: 
+  successfulJobsHistoryLimit: 5 
+  failedJobsHistoryLimit: 3
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: current-date
+            image: nginx
+            args:
+            - /bin/sh
+            - -c
+            - 'echo "Current date: $(date)"'
+          restartPolicy: OnFailure
+EOF
+
+kubectl get cronjobs current-date -o yaml | grep failedJobsHistoryLimit
