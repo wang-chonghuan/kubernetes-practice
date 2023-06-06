@@ -77,6 +77,13 @@ kubectl taint nodes --all node-role.kubernetes.io/master-
 kubectl get no -o wide
 
 ######## 6 配置网络
+
+#复制虚拟机时的方法
+pod连接不上nslookup kubernetes.default.svc.cluster.local
+原因是复制虚拟机副本时, 没有生成了新的MAC地址, 正确的方法应该是"包含所有网卡的MAC地址"
+我是怎么解决的? 我用ifconfig查看了IP地址, 和配置说明书上的一样, 这时我想到可能是复制完副本的启动顺序有问题.
+我想重新复制, 重新复制时发现MAC的复制策略有问题, 原来是上次选错了
+
 #私有IP地址范围包括几个地址块，包括192.168.0.0/16、10.0.0.0/8和172.16.0.0/12
 #vbox-ubuntu22的桥接网卡的掩码是inet 10.54.138.191  netmask 255.255.224.0,相当于其CIDR记号是/19
 #在主节点固定桥接网卡的IP
